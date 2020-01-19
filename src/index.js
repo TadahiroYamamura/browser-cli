@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const socket = require('socket.io');
+const cheerio = require('cheerio');
 const httpProxy = require('http-proxy');
 const packagejson = require('../package.json');
 const fs = require('fs');
@@ -38,10 +38,21 @@ function defineStartCommandOptions(yargs) {
 }
 
 function startProxyServer(yargs) {
-  console.log('start proxy server at', yargs.port, 'target:', yargs.target);
   const proxy = httpProxy.createProxyServer({
     target: yargs.target,
-  }).listen(yargs.port);
+    selfHandleResponse: true
+  });
+  proxy.on('proxyRes', function(proxyRes, req, res) {
+    let body = [];
+    proxyRes.on('data', (chunk) => body.push(chunk));
+    proxyRes.on('end', () => {
+      const $ = cheerio.load(Buffer.concat(body).toString());
+      $('body').append('<p>test</p>');
+      res.end($.html());
+    });
+  });
+  console.log('proxy server listening on port', yargs.port);
+  proxy.listen(yargs.port);
 }
 
 function defineRunScriptCommandOptions(yargs) {
