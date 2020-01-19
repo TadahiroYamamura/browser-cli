@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 const cheerio = require('cheerio');
+const http = require('http');
 const httpProxy = require('http-proxy');
 const packagejson = require('../package.json');
+const socketio = require('socket.io');
 const fs = require('fs');
 
 
@@ -42,17 +44,30 @@ function startProxyServer(yargs) {
     target: yargs.target,
     selfHandleResponse: true
   });
+
+  // proxy changes response body to send javascript code.
   proxy.on('proxyRes', function(proxyRes, req, res) {
     let body = [];
     proxyRes.on('data', (chunk) => body.push(chunk));
     proxyRes.on('end', () => {
       const $ = cheerio.load(Buffer.concat(body).toString());
-      $('body').append('<p>test</p>');
+      $('body').append('<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>');
+      $('body').append('<script>' + fs.readFileSync('client.js').toString().replace(/%PORT%/g, yargs.port) + '</script>');
       res.end($.html());
     });
   });
+
+  // prepare websocket connection
+  const server = http.createServer((req, res) => {
+    proxy.web(req, res);
+  });
+  const websocket = socketio(server);
+  websocket.on('connection', function(sock) {
+    sock.emit('browsercli:runscript', 'alert("foo");');
+  });
+
   console.log('proxy server listening on port', yargs.port);
-  proxy.listen(yargs.port);
+  server.listen(yargs.port);
 }
 
 function defineRunScriptCommandOptions(yargs) {
