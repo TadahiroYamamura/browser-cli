@@ -1,0 +1,30 @@
+{
+  "name": "browser-cli",
+  "version": "0.0.1",
+  "description": "CLI interface for browser manipulation.",
+  "main": "src/index.js",
+  "bin": {
+    "browser": "src/index.js"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TadahiroYamamura/browser-cli.git"
+  },
+  "author": "Tadahiro Yamamura",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/TadahiroYamamura/browser-cli/issues"
+  },
+  "homepage": "https://github.com/TadahiroYamamura/browser-cli#readme",
+  "keywords": [
+    "browser",
+    "live reload",
+    "repl"
+  ],
+  "dependencies": {
+    "http-proxy": "^1.18.0",
+    "socket.io": "^2.3.0",
+    "yargs": "^15.1.0"
+  }
+}
